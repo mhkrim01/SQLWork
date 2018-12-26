@@ -1,0 +1,435 @@
+--44) Display the departments in LGDEPARTMENT 
+
+SELECT    * 
+
+FROM    LGDEPARTMENT 
+
+  
+
+--45) Display PROD_SKU, PROD_DESCRIPT, PROD_TYPE, PROD_BASE, PROD_CATEGORY, PROD_PRICE 
+
+-- that have a base of water and category of sealer 
+
+SELECT    PROD_SKU, PROD_DESCRIPT, PROD_TYPE, PROD_BASE, PROD_CATEGORY, PROD_PRICE 
+
+FROM    LGPRODUCT 
+
+WHERE    PROD_BASE = 'Water' AND  
+
+        PROD_CATEGORY = 'Sealer' 
+
+  
+
+--46) Display EMP_FNAME, EMP_LNAME, EMP_EMAIL of employees hired from jan 1, 2003 
+
+-- to dec 31, 2012. Sort by last name and then first 
+
+SELECT    EMP_FNAME, EMP_LNAME, EMP_EMAIL 
+
+FROM    LGEMPLOYEE 
+
+WHERE    EMP_HIREDATE > '2003-1-1' AND 
+
+        EMP_HIREDATE < '2012-12-31' 
+
+ORDER BY EMP_LNAME, EMP_FNAME 
+
+  
+
+--47) Display EMP_FNAME, EMP_LNAME, EMP_PHONE, EMP_TITLE, DEPT_NUM of employees who work  
+
+-- in department 300 or have title CLERK I. Sort by last then first name 
+
+SELECT    EMP_FNAME, EMP_LNAME, EMP_PHONE, EMP_TITLE, DEPT_NUM 
+
+FROM    LGEMPLOYEE 
+
+WHERE    DEPT_NUM = 300 
+
+        OR EMP_TITLE = 'CLERK I' 
+
+ORDER BY EMP_LNAME, EMP_FNAME 
+
+  
+
+--48) Display E.EMP_NUM, E.EMP_LNAME, E.EMP_FNAME, S.SAL_FROM, S.SAL_END, S.SAL_AMOUNT 
+
+-- for employees 83731, 83745, 84039. Sort by last then first name 
+
+SELECT    E.EMP_NUM, E.EMP_LNAME, E.EMP_FNAME, S.SAL_FROM, S.SAL_END, S.SAL_AMOUNT 
+
+FROM    LGEMPLOYEE E INNER JOIN LGSALARY_HISTORY S ON E.EMP_NUM = S.EMP_NUM 
+
+WHERE    E.EMP_NUM = 83731 
+
+        OR E.EMP_NUM = 83745 
+
+        OR E.EMP_NUM = 84039 
+
+ORDER BY E.EMP_NUM, S.SAL_FROM 
+
+  
+
+--49) Display C.CUST_FNAME, C.CUST_LNAME, C.CUST_STREET, C.CUST_CITY, C.CUST_STATE, C.CUST_ZIP 
+
+-- who purchased a Foresters Best brand top coat between july 15, 2015 and july 31, 2015 
+
+-- Need to be all distinct rows. No repeat customers. 
+
+-- Sort by state, last name, first name 
+
+--USING JOIN 
+
+SELECT    DISTINCT C.CUST_FNAME, C.CUST_LNAME, C.CUST_STREET, C.CUST_CITY, C.CUST_STATE, C.CUST_ZIP 
+
+FROM    LGCUSTOMER C INNER JOIN LGINVOICE I ON C.CUST_CODE = I.CUST_CODE 
+
+        INNER JOIN LGLINE L ON I.INV_NUM = L.INV_NUM 
+
+        INNER JOIN LGPRODUCT P ON L.PROD_SKU = P.PROD_SKU 
+
+        INNER JOIN LGBRAND B ON P.BRAND_ID = B.BRAND_ID 
+
+WHERE    B.BRAND_NAME = 'FORESTERS BEST' 
+
+        AND P.PROD_CATEGORY = 'Top Coat' 
+
+        AND (I.INV_DATE >= '2015-7-15' AND I.INV_DATE <= '2015-7-31') 
+
+ORDER BY C.CUST_STATE, C.CUST_LNAME, C.CUST_FNAME 
+
+  
+
+--USING IN WITH NESTED QUERY 
+
+SELECT    C.CUST_FNAME, C.CUST_LNAME, C.CUST_STREET, C.CUST_CITY, C.CUST_STATE, C.CUST_ZIP 
+
+FROM    LGCUSTOMER C 
+
+WHERE    C.CUST_CODE IN 
+
+        (SELECT    I.CUST_CODE 
+
+         FROM    LGINVOICE I INNER JOIN LGLINE L ON I.INV_NUM = L.INV_NUM 
+
+                INNER JOIN LGPRODUCT P ON L.PROD_SKU = P.PROD_SKU 
+
+                INNER JOIN LGBRAND B ON P.BRAND_ID = B.BRAND_ID 
+
+         WHERE    B.BRAND_NAME = 'FORESTERS BEST' 
+
+                AND P.PROD_CATEGORY = 'Top Coat' 
+
+                AND (I.INV_DATE >= '2015-7-15' AND I.INV_DATE <= '2015-7-31') 
+
+        ) 
+
+ORDER BY C.CUST_STATE, C.CUST_LNAME, C.CUST_FNAME 
+
+  
+
+--USING EXISTS WITH NESTED QUERY 
+
+SELECT    C.CUST_FNAME, C.CUST_LNAME, C.CUST_STREET, C.CUST_CITY, C.CUST_STATE, C.CUST_ZIP 
+
+FROM    LGCUSTOMER C  
+
+WHERE    EXISTS 
+
+        (SELECT *  
+
+         FROM    LGINVOICE I INNER JOIN LGLINE L ON I.INV_NUM = L.INV_NUM 
+
+                INNER JOIN LGPRODUCT P ON L.PROD_SKU = P.PROD_SKU 
+
+                INNER JOIN LGBRAND B ON P.BRAND_ID = B.BRAND_ID  
+
+         WHERE    B.BRAND_NAME = 'FORESTERS BEST' 
+
+                AND P.PROD_CATEGORY = 'Top Coat' 
+
+                AND (I.INV_DATE >= '2015-7-15' AND I.INV_DATE <= '2015-7-31') 
+
+                AND C.CUST_CODE = I.CUST_CODE 
+
+        ) 
+
+ORDER BY C.CUST_STATE, C.CUST_LNAME, C.CUST_FNAME 
+
+  
+
+--50) Display E.EMP_NUM, E.EMP_LNAME, E.EMP_EMAIL, E.EMP_TITLE, D.DEPT_NAME  
+
+-- for employees who title ends in the word ASSOCIATE 
+
+-- Sort by dept name, and emp title 
+
+SELECT    E.EMP_NUM, E.EMP_LNAME, E.EMP_EMAIL, E.EMP_TITLE, D.DEPT_NAME 
+
+FROM    LGEMPLOYEE E INNER JOIN LGDEPARTMENT D ON E.DEPT_NUM = D.DEPT_NUM 
+
+WHERE    E.EMP_TITLE LIKE '%ASSOCIATE' 
+
+ORDER BY D.DEPT_NAME, E.EMP_TITLE 
+
+  
+
+--51) Display a brand name and num of products of that brand that are in the database 
+
+-- Sort output by brand name 
+
+SELECT    B.BRAND_NAME, COUNT(P.PROD_SKU) AS NUMPRODUCTS 
+
+FROM    LGBRAND B INNER JOIN LGPRODUCT P ON P.BRAND_ID = B.BRAND_ID 
+
+GROUP BY B.BRAND_NAME 
+
+ORDER BY B.BRAND_NAME 
+
+  
+
+--52) Display num of products in each category that have a water base 
+
+SELECT    PROD_CATEGORY, COUNT(PROD_SKU) AS NUMPRODUCTS 
+
+FROM    LGPRODUCT 
+
+WHERE    PROD_BASE = 'Water' 
+
+GROUP BY PROD_CATEGORY 
+
+  
+
+--53) Display num of products within each base and type combination 
+
+SELECT    PROD_BASE, PROD_TYPE, COUNT(PROD_SKU) AS NUMPRODUCTS 
+
+FROM    LGPRODUCT 
+
+GROUP BY PROD_BASE, PROD_TYPE 
+
+ORDER BY PROD_BASE, PROD_TYPE 
+
+  
+
+--54) Display the total inventory, sum of all products on hand for each brand id 
+
+-- Sort by brand id in descending order 
+
+SELECT    BRAND_ID, SUM(PROD_QOH) AS TOTALINVENTORY 
+
+FROM    LGPRODUCT 
+
+GROUP BY BRAND_ID 
+
+ORDER BY BRAND_ID DESC 
+
+  
+
+--55) Display B.BRAND_ID, B.BRAND_NAME, AVG(P.PROD_PRICE) AS AVGPRICE of each brand 
+
+-- Sort by brand name 
+
+SELECT  B.BRAND_ID, B.BRAND_NAME, AVG(P.PROD_PRICE) AS AVGPRICE 
+
+FROM    LGBRAND B INNER JOIN LGPRODUCT P ON B.BRAND_ID = P.BRAND_ID 
+
+GROUP BY B.BRAND_ID, B.BRAND_NAME 
+
+ORDER BY B.BRAND_NAME 
+
+  
+
+--56) Display the D.DEPT_NUM, MAX(E.EMP_HIREDATE) AS MOSTRECENT(hire date) for each department 
+
+-- Sort by dept num 
+
+SELECT    D.DEPT_NUM, MAX(E.EMP_HIREDATE) AS MOSTRECENT 
+
+FROM    LGDEPARTMENT D INNER JOIN LGEMPLOYEE E ON D.DEPT_NUM = E.DEPT_NUM 
+
+GROUP BY D.DEPT_NUM 
+
+ORDER BY D.DEPT_NUM 
+
+  
+
+--57) Display the E.EMP_NUM, E.EMP_FNAME, E.EMP_LNAME, MAX(S.SAL_AMOUNT) AS LARGESTSALARY for  
+
+-- each employee in dept num = 200 
+
+-- Sort by largest salary in descending order 
+
+SELECT    E.EMP_NUM, E.EMP_FNAME, E.EMP_LNAME, MAX(S.SAL_AMOUNT) AS LARGESTSALARY 
+
+FROM    LGEMPLOYEE E INNER JOIN LGSALARY_HISTORY S ON E.EMP_NUM = S.EMP_NUM 
+
+WHERE    E.DEPT_NUM =  200 
+
+GROUP BY  E.EMP_NUM, E.EMP_FNAME, E.EMP_LNAME 
+
+ORDER BY MAX(S.SAL_AMOUNT) DESC 
+
+  
+
+--58) Display C.CUST_CODE, C.CUST_FNAME, C.CUST_LNAME, SUM(I.INV_TOTAL) AS TOTALINVOICES 
+
+-- for customers with cumulative invoice totals greater than 1500 
+
+-- Sort by sum of invoice totals in descending order 
+
+SELECT    C.CUST_CODE, C.CUST_FNAME, C.CUST_LNAME, SUM(I.INV_TOTAL) AS TOTALINVOICES 
+
+FROM    LGCUSTOMER C INNER JOIN LGINVOICE I ON C.CUST_CODE = I.CUST_CODE 
+
+GROUP BY C.CUST_CODE, C.CUST_FNAME, C.CUST_LNAME 
+
+HAVING    SUM(I.INV_TOTAL) > 1500 
+
+ORDER BY SUM(I.INV_TOTAL) DESC 
+
+  
+
+--59) Display D.DEPT_NUM, D.DEPT_NAME, D.DEPT_PHONE, E.EMP_NUM, E.EMP_LNAME  
+
+-- of each dept manager 
+
+-- Sort by dept name 
+
+SELECT    D.DEPT_NUM, D.DEPT_NAME, D.DEPT_PHONE, E.EMP_NUM, E.EMP_LNAME 
+
+FROM    LGDEPARTMENT D INNER JOIN LGEMPLOYEE E ON E.EMP_NUM = D.EMP_NUM 
+
+ORDER BY D.DEPT_NAME 
+
+  
+
+--60) Display V.VEND_ID, V.VEND_NAME, B.BRAND_NAME, COUNT(P.PROD_SKU) AS NUMPRODUCTS 
+
+-- of each brand supplied by each vendor 
+
+-- Sort by vend name, brand name 
+
+SELECT    V.VEND_ID, V.VEND_NAME, B.BRAND_NAME, COUNT(P.PROD_SKU) AS NUMPRODUCTS 
+
+FROM    LGVENDOR V INNER JOIN LGSUPPLIES S ON V.VEND_ID = S.VEND_ID 
+
+        INNER JOIN LGPRODUCT P ON S.PROD_SKU = P.PROD_SKU 
+
+        INNER JOIN LGBRAND B ON B.BRAND_ID = P.BRAND_ID 
+
+GROUP BY V.VEND_ID, V.VEND_NAME, B.BRAND_NAME 
+
+ORDER BY V.VEND_NAME, B.BRAND_NAME 
+
+  
+
+--61) Display E.EMP_NUM, E.EMP_LNAME, E.EMP_FNAME, SUM(I.INV_TOTAL) for all employees 
+
+-- who completed an invoice 
+
+-- Sort by emp lname, emp fname 
+
+SELECT    E.EMP_NUM, E.EMP_LNAME, E.EMP_FNAME, SUM(I.INV_TOTAL) 
+
+FROM    LGEMPLOYEE E INNER JOIN LGINVOICE I ON E.EMP_NUM = I.EMPLOYEE_ID 
+
+GROUP BY E.EMP_NUM, E.EMP_FNAME, E.EMP_LNAME 
+
+ORDER BY E.EMP_LNAME, E.EMP_FNAME 
+
+  
+
+--62) Display max average of product price of any brand 
+
+SELECT    AVG(P.PROD_PRICE) AS [LARGEST AVERAGE] 
+
+FROM    LGPRODUCT P  
+
+GROUP BY P.BRAND_ID 
+
+HAVING    AVG(P.PROD_PRICE) =  
+
+        (SELECT TOP 1 AVG(PROD_PRICE) 
+
+         FROM LGPRODUCT 
+
+         GROUP BY BRAND_ID 
+
+         ORDER BY AVG(PROD_PRICE) DESC 
+
+         ) 
+
+  
+
+--63) Display B.BRAND_ID, B.BRAND_NAME, B.BRAND_TYPE, AVG(P.PROD_PRICE) AS [LARGEST AVERAGE] 
+
+-- for the max average product price 
+
+SELECT    B.BRAND_ID, B.BRAND_NAME, B.BRAND_TYPE, AVG(P.PROD_PRICE) AS [LARGEST AVERAGE] 
+
+FROM    LGPRODUCT P INNER JOIN LGBRAND B ON B.BRAND_ID = P.BRAND_ID 
+
+GROUP BY B.BRAND_ID, B.BRAND_NAME, B.BRAND_TYPE 
+
+HAVING    AVG(P.PROD_PRICE) = 
+
+        (SELECT TOP 1 AVG(PROD_PRICE) 
+
+         FROM    LGPRODUCT 
+
+         GROUP BY BRAND_ID 
+
+         ORDER BY AVG(PROD_PRICE) DESC 
+
+         ) 
+
+  
+
+--64) Display manager name, department name, department phone, employee name, customer name, invoice date 
+
+-- invoice total for the departnment manager of the employee who made a sale to a customer whose 
+
+-- last name is Hagan on May 18, 2015  
+
+-- BOTH WORK, SECOND ONE NEEDS FORMAT CHANGES FOR SELECT CLAUSE 
+
+SELECT    B.EMP_FNAME AS [MANAGER FNAME], B.EMP_LNAME AS [MANAGER LNAME], D.DEPT_NAME, D.DEPT_PHONE, 
+
+        A.EMP_FNAME AS [EMPLOYEE FNAME], A.EMP_LNAME AS [EMPLOYEE LNAME], C.CUST_LNAME, I.INV_DATE, I.INV_TOTAL 
+
+FROM    LGDEPARTMENT D INNER JOIN LGEMPLOYEE A ON D.DEPT_NUM = A.DEPT_NUM 
+
+        INNER JOIN LGEMPLOYEE B ON D.EMP_NUM = B.EMP_NUM 
+
+        INNER JOIN LGINVOICE I ON A.EMP_NUM = I.EMPLOYEE_ID 
+
+        INNER JOIN LGCUSTOMER C ON I.CUST_CODE = C.CUST_CODE 
+
+WHERE    C.CUST_LNAME = 'HAGAN' 
+
+        AND I.INV_DATE = '2015-5-18' 
+
+  
+
+SELECT    A.EMP_LNAME AS [EMPLOYEE LNAME], D.DEPT_NAME, D.DEPT_PHONE, B.EMP_LNAME AS MNAME, C.CUST_LNAME, I.INV_DATE, I.INV_TOTAL 
+
+FROM    LGEMPLOYEE A INNER JOIN LGINVOICE I ON A.EMP_NUM =  I.EMPLOYEE_ID 
+
+        INNER JOIN LGCUSTOMER C ON C.CUST_CODE = I.CUST_CODE 
+
+        INNER JOIN LGDEPARTMENT D ON D.DEPT_NUM =  A.DEPT_NUM 
+
+        INNER JOIN LGEMPLOYEE B ON B.EMP_NUM = D.EMP_NUM 
+
+WHERE    I.INV_DATE = '2015-5-18' 
+
+        AND C.CUST_LNAME = 'HAGAN' 
+
+ 
+
+ 
+
+ 
+
+         
